@@ -1,217 +1,150 @@
-Déploiement OwnCloud + Collabora Online avec HTTPS
-INF3611 – Administration Systèmes et Réseaux
-1. Informations étudiant
+# Déploiement OwnCloud + Collabora Online avec HTTPS
 
-Nom : TAMWO MOTCHEYO
+**INF3611 – Administration Systèmes et Réseaux**
 
-Prénom : STEVE SOREL
+## 1. Informations étudiant
 
-Matricule : 23U2423
+- **Nom :** TAMWO MOTCHEYO
+- **Prénom :** STEVE SOREL
+- **Matricule :** 23U2423
+- **Option :** Systèmes et Réseaux
+- **Cours :** INF3611
+- **URL de l'application :** [https://23U2423.systeme-res30.app](https://23U2423.systeme-res30.app)
 
-Option : Systèmes et Réseaux
+## 2. Description de l'application
 
-Cours : INF3611
+Ce projet consiste au déploiement d'une plateforme collaborative sécurisée composée de :
 
-URL de l’application :
-https://23U2423.systeme-res30.app
+- **OwnCloud** : solution de stockage cloud open-source auto-hébergée
+- **MariaDB** : base de données relationnelle
+- **Collabora Online** : suite bureautique collaborative
+- **NGINX** : reverse proxy HTTPS
+- **Let's Encrypt + Certbot** : génération de certificat TLS
 
-2. Description de l’application
+L'application est accessible via HTTPS conformément aux exigences du TP.
 
-Ce projet consiste au déploiement d’une plateforme collaborative sécurisée composée de :
-
-OwnCloud : solution de stockage cloud open-source auto-hébergée
-
-MariaDB : base de données relationnelle
-
-Collabora Online : suite bureautique collaborative
-
-NGINX : reverse proxy HTTPS
-
-Let’s Encrypt + Certbot : génération de certificat TLS
-
-L’application est accessible via HTTPS conformément aux exigences du TP.
-
-3. Rôle de l’application en entreprise
+## 3. Rôle de l'application en entreprise
 
 Cette solution peut être utilisée dans une entreprise pour :
 
-Centraliser les documents internes
-
-Permettre l’édition collaborative en temps réel
-
-Assurer la confidentialité des données
-
-Héberger les données en interne (indépendance cloud public)
-
-Mettre en place un contrôle d’accès précis
-
-Garantir la conformité aux normes de sécurité et protection des données
+- Centraliser les documents internes
+- Permettre l'édition collaborative en temps réel
+- Assurer la confidentialité des données
+- Héberger les données en interne (indépendance cloud public)
+- Mettre en place un contrôle d'accès précis
+- Garantir la conformité aux normes de sécurité et protection des données
 
 Elle remplace des services comme Google Drive ou Microsoft 365 tout en gardant le contrôle total des données.
 
-4. Architecture technique
-Services Docker déployés
-1) MariaDB
+## 4. Architecture technique
+
+### Services Docker déployés
+
+#### 1) MariaDB
 
 Base de données utilisée par OwnCloud pour stocker :
 
-Comptes utilisateurs
+- Comptes utilisateurs
+- Métadonnées
+- Paramètres système
 
-Métadonnées
-
-Paramètres système
-
-2) OwnCloud
+#### 2) OwnCloud
 
 Application web permettant :
 
-Upload et partage de fichiers
+- Upload et partage de fichiers
+- Gestion des utilisateurs
+- Synchronisation multi-appareils
 
-Gestion des utilisateurs
-
-Synchronisation multi-appareils
-
-3) Collabora Online
+#### 3) Collabora Online
 
 Suite bureautique permettant :
 
-Modifier des fichiers Word, Excel, PowerPoint
+- Modifier des fichiers Word, Excel, PowerPoint
+- Collaboration en temps réel
+- Intégration directe dans OwnCloud
 
-Collaboration en temps réel
+#### 4) NGINX (Reverse Proxy)
 
-Intégration directe dans OwnCloud
+- Gère le trafic HTTPS
+- Redirige HTTP vers HTTPS
+- Transmet les requêtes vers OwnCloud et Collabora
 
-4) NGINX (Reverse Proxy)
+## 5. Réseau Docker
 
-Gère le trafic HTTPS
-
-Redirige HTTP vers HTTPS
-
-Transmet les requêtes vers OwnCloud et Collabora
-
-5. Réseau Docker
-
-Un réseau bridge personnalisé a été créé :
-
-res30_23U2423_net
+Un réseau bridge personnalisé a été créé : **res30_23U2423_net**
 
 Ce réseau permet :
 
-Communication interne sécurisée entre conteneurs
+- Communication interne sécurisée entre conteneurs
+- Isolation du projet
+- Respect de la nomenclature académique
 
-Isolation du projet
-
-Respect de la nomenclature académique
-
-6. Volumes persistants (Bind Mount)
+## 6. Volumes persistants (Bind Mount)
 
 Les données sont persistées grâce à des bind volumes :
-
+```
 ./data/db              → /var/lib/mysql
 ./data/owncloud        → /var/www/html
+```
 
-Rôle :
+**Rôle :**
 
-Empêcher la perte des données si les conteneurs sont supprimés
+- Empêcher la perte des données si les conteneurs sont supprimés
+- Assurer la persistance des fichiers utilisateurs
+- Conserver la configuration
 
-Assurer la persistance des fichiers utilisateurs
+## 7. Explication complète des variables d'environnement (.env)
 
-Conserver la configuration
+### Informations générales
 
-7. Explication complète des variables d’environnement (.env)
-Informations générales
-DOMAIN
+- **DOMAIN** : Nom de domaine public utilisé pour accéder à l'application via HTTPS.
 
-Nom de domaine public utilisé pour accéder à l’application via HTTPS.
+### Variables Base de données
 
-Variables Base de données
-MYSQL_ROOT_PASSWORD
+- **MYSQL_ROOT_PASSWORD** : Mot de passe administrateur root de MariaDB. Permet d'administrer la base de données.
+- **DB_TYPE** : Type de base de données utilisé par OwnCloud (mysql).
+- **DB_NAME** : Nom de la base de données créée pour OwnCloud.
+- **DB_USER** : Utilisateur dédié à OwnCloud pour accéder à la base.
+- **DB_PASSWORD** : Mot de passe associé à DB_USER.
 
-Mot de passe administrateur root de MariaDB.
-Permet d’administrer la base de données.
+### Variables OwnCloud
 
-DB_TYPE
+- **OWNCLOUD_ADMIN_USERNAME** : Nom d'utilisateur administrateur principal de la plateforme.
+- **OWNCLOUD_ADMIN_PASSWORD** : Mot de passe de l'administrateur OwnCloud.
+- **OWNCLOUD_DB_HOST** : Nom du service Docker correspondant à la base de données (owncloud-db).
+- **OVERWRITEPROTOCOL** : Force l'utilisation du protocole HTTPS.
+- **OVERWRITEHOST** : Domaine officiel utilisé par OwnCloud.
 
-Type de base de données utilisé par OwnCloud (mysql).
+### Variables Collabora
 
-DB_NAME
+- **COLLABORA_DOMAIN** : Domaine autorisé à communiquer avec Collabora.
+- **COLLABORA_USERNAME** : Utilisateur d'authentification pour Collabora.
+- **COLLABORA_PASSWORD** : Mot de passe associé à Collabora.
 
-Nom de la base de données créée pour OwnCloud.
+## 8. Configuration NGINX (Reverse Proxy)
 
-DB_USER
-
-Utilisateur dédié à OwnCloud pour accéder à la base.
-
-DB_PASSWORD
-
-Mot de passe associé à DB_USER.
-
-Variables OwnCloud
-OWNCLOUD_ADMIN_USERNAME
-
-Nom d’utilisateur administrateur principal de la plateforme.
-
-OWNCLOUD_ADMIN_PASSWORD
-
-Mot de passe de l’administrateur OwnCloud.
-
-OWNCLOUD_DB_HOST
-
-Nom du service Docker correspondant à la base de données (owncloud-db).
-
-OVERWRITEPROTOCOL
-
-Force l’utilisation du protocole HTTPS.
-
-OVERWRITEHOST
-
-Domaine officiel utilisé par OwnCloud.
-
-Variables Collabora
-COLLABORA_DOMAIN
-
-Domaine autorisé à communiquer avec Collabora.
-
-COLLABORA_USERNAME
-
-Utilisateur d’authentification pour Collabora.
-
-COLLABORA_PASSWORD
-
-Mot de passe associé à Collabora.
-
-8. Configuration NGINX (Reverse Proxy)
-
-Fichier :
-
-/etc/nginx/sites-available/23U2423.systeme-res30.app
-
-Contenu :
-
+**Fichier :** `/etc/nginx/sites-available/23U2423.systeme-res30.app`
+```nginx
 server {
     listen 80;
     server_name 23U2423.systeme-res30.app;
 
-
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
-
 
     location / {
         return 301 https://$host$request_uri;
     }
 }
 
-
 server {
     listen 443 ssl;
     server_name 23U2423.systeme-res30.app;
 
-
     ssl_certificate /etc/letsencrypt/live/23U2423.systeme-res30.app/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/23U2423.systeme-res30.app/privkey.pem;
-
 
     location / {
         proxy_pass http://localhost:5581;
@@ -219,94 +152,112 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 
-
     location /loleaflet {
         proxy_pass http://localhost:9981;
     }
 }
-9. Rôle de Let’s Encrypt et Certbot
-Let’s Encrypt
+```
+
+## 9. Rôle de Let's Encrypt et Certbot
+
+### Let's Encrypt
 
 Autorité de certification gratuite permettant de générer des certificats SSL/TLS reconnus mondialement.
 
-Certbot
+### Certbot
 
 Client permettant :
 
-Génération automatique du certificat
+- Génération automatique du certificat
+- Installation automatique dans NGINX
+- Renouvellement automatique avant expiration
 
-Installation automatique dans NGINX
+## 10. Génération du certificat TLS
 
-Renouvellement automatique avant expiration
-
-10. Génération du certificat TLS
-1) Installation
+### 1) Installation
+```bash
 sudo apt update
 sudo apt install certbot python3-certbot-nginx
-2) Génération du certificat
+```
+
+### 2) Génération du certificat
+```bash
 sudo certbot --nginx -d 23U2423.systeme-res30.app
-3) Test du renouvellement
+```
+
+### 3) Test du renouvellement
+```bash
 sudo certbot renew --dry-run
-11. Emplacement des certificats
+```
 
-Les certificats sont stockés dans :
+## 11. Emplacement des certificats
 
-/etc/letsencrypt/live/23U2423.systeme-res30.app/
+Les certificats sont stockés dans : `/etc/letsencrypt/live/23U2423.systeme-res30.app/`
 
-Fichiers importants :
+**Fichiers importants :**
 
-fullchain.pem
+- `fullchain.pem`
+- `privkey.pem`
 
-privkey.pem
+## 12. Instructions de démarrage
 
-12. Instructions de démarrage
-1) Se connecter au serveur
+### 1) Se connecter au serveur
+```bash
 ssh user@ip_du_serveur
-2) Aller dans le dossier du projet
+```
+
+### 2) Aller dans le dossier du projet
+```bash
 cd owncloud_23U2423
-3) Lancer les conteneurs
+```
+
+### 3) Lancer les conteneurs
+```bash
 docker compose up -d
-4) Vérifier les services
+```
+
+### 4) Vérifier les services
+```bash
 docker compose ps
-13. Commandes utiles
+```
 
-Voir les logs :
+## 13. Commandes utiles
 
+**Voir les logs :**
+```bash
 docker compose logs -f
+```
 
-Redémarrer :
-
+**Redémarrer :**
+```bash
 docker compose restart
+```
 
-Arrêter :
-
+**Arrêter :**
+```bash
 docker compose stop
+```
 
-Supprimer complètement :
-
+**Supprimer complètement :**
+```bash
 docker compose down -v
-14. Sécurité mise en place
+```
 
-Accès HTTPS obligatoire
+## 14. Sécurité mise en place
 
-Certificat TLS valide
+- Accès HTTPS obligatoire
+- Certificat TLS valide
+- Variables sensibles externalisées dans .env
+- Réseau Docker isolé
+- Données persistantes
 
-Variables sensibles externalisées dans .env
+## 15. Conclusion
 
-Réseau Docker isolé
+Ce projet met en place une infrastructure complète de collaboration d'entreprise :
 
-Données persistantes
+- **Sécurisée** (HTTPS + TLS)
+- **Persistante** (Volumes bind)
+- **Structurée** (Réseau dédié)
+- **Professionnelle** (Reverse proxy + Certbot)
 
-15. Conclusion
-
-Ce projet met en place une infrastructure complète de collaboration d’entreprise :
-
-Sécurisée (HTTPS + TLS)
-
-Persistante (Volumes bind)
-
-Structurée (Réseau dédié)
-
-Professionnelle (Reverse proxy + Certbot)
-
-L’application est accessible publiquement via HTTPS conformément aux exigences du TP INF3611.
+L'application est accessible publiquement via HTTPS conformément aux exigences du TP INF3611.
