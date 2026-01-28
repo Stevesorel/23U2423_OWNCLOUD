@@ -1,123 +1,312 @@
-# Déploiement OwnCloud + Collabora Online
+Déploiement OwnCloud + Collabora Online avec HTTPS
+INF3611 – Administration Systèmes et Réseaux
+1. Informations étudiant
 
-## 1. Informations étudiant
-- **Nom** : TAMWO MOTCHEYO
-- **Prénom** : STEVE SOREL
-- **Matricule** : 23U2423
-- **Option** : Systèmes et Réseaux
-- **Cours** : INF3611 - Administration Systèmes
+Nom : TAMWO MOTCHEYO
 
-## 2. URL de l'application
-**https://23U2423.systeme-res30.app**
+Prénom : STEVE SOREL
 
-## 3. Description de l'application et cas d'utilisation en entreprise
+Matricule : 23U2423
 
-### OwnCloud
-OwnCloud est une plateforme de stockage cloud open-source auto-hébergée qui permet le partage et la synchronisation de fichiers. Elle offre des fonctionnalités similaires à Dropbox ou Google Drive, mais avec un contrôle total sur les données.
+Option : Systèmes et Réseaux
 
-### Collabora Online
-Collabora Online est une suite bureautique collaborative basée sur LibreOffice, permettant l'édition en temps réel de documents Word, Excel et PowerPoint directement dans le navigateur.
+Cours : INF3611
 
-### Cas d'utilisation en entreprise
-1. **Stockage sécurisé** : Hébergement interne de documents sensibles
-2. **Collaboration** : Édition simultanée de documents par plusieurs utilisateurs
-3. **Contrôle d'accès** : Gestion fine des permissions de fichiers
-4. **Synchronisation** : Accès aux fichiers depuis n'importe quel appareil
-5. **Conformité** : Respect des réglementations sur la protection des données (RGPD, etc.)
+URL de l’application :
+https://23U2423.systeme-res30.app
 
-## 4. Instructions pour démarrer l'application
-```bash
-# 1. Se connecter au VPS
-ssh [votre_user]@37.60.250.220
+2. Description de l’application
 
-# 2. Se rendre dans le dossier de déploiement
-cd ~/owncloud_23U2423
+Ce projet consiste au déploiement d’une plateforme collaborative sécurisée composée de :
 
-# 3. Lancer les conteneurs Docker
+OwnCloud : solution de stockage cloud open-source auto-hébergée
+
+MariaDB : base de données relationnelle
+
+Collabora Online : suite bureautique collaborative
+
+NGINX : reverse proxy HTTPS
+
+Let’s Encrypt + Certbot : génération de certificat TLS
+
+L’application est accessible via HTTPS conformément aux exigences du TP.
+
+3. Rôle de l’application en entreprise
+
+Cette solution peut être utilisée dans une entreprise pour :
+
+Centraliser les documents internes
+
+Permettre l’édition collaborative en temps réel
+
+Assurer la confidentialité des données
+
+Héberger les données en interne (indépendance cloud public)
+
+Mettre en place un contrôle d’accès précis
+
+Garantir la conformité aux normes de sécurité et protection des données
+
+Elle remplace des services comme Google Drive ou Microsoft 365 tout en gardant le contrôle total des données.
+
+4. Architecture technique
+Services Docker déployés
+1) MariaDB
+
+Base de données utilisée par OwnCloud pour stocker :
+
+Comptes utilisateurs
+
+Métadonnées
+
+Paramètres système
+
+2) OwnCloud
+
+Application web permettant :
+
+Upload et partage de fichiers
+
+Gestion des utilisateurs
+
+Synchronisation multi-appareils
+
+3) Collabora Online
+
+Suite bureautique permettant :
+
+Modifier des fichiers Word, Excel, PowerPoint
+
+Collaboration en temps réel
+
+Intégration directe dans OwnCloud
+
+4) NGINX (Reverse Proxy)
+
+Gère le trafic HTTPS
+
+Redirige HTTP vers HTTPS
+
+Transmet les requêtes vers OwnCloud et Collabora
+
+5. Réseau Docker
+
+Un réseau bridge personnalisé a été créé :
+
+res30_23U2423_net
+
+Ce réseau permet :
+
+Communication interne sécurisée entre conteneurs
+
+Isolation du projet
+
+Respect de la nomenclature académique
+
+6. Volumes persistants (Bind Mount)
+
+Les données sont persistées grâce à des bind volumes :
+
+./data/db              → /var/lib/mysql
+./data/owncloud        → /var/www/html
+
+Rôle :
+
+Empêcher la perte des données si les conteneurs sont supprimés
+
+Assurer la persistance des fichiers utilisateurs
+
+Conserver la configuration
+
+7. Explication complète des variables d’environnement (.env)
+Informations générales
+DOMAIN
+
+Nom de domaine public utilisé pour accéder à l’application via HTTPS.
+
+Variables Base de données
+MYSQL_ROOT_PASSWORD
+
+Mot de passe administrateur root de MariaDB.
+Permet d’administrer la base de données.
+
+DB_TYPE
+
+Type de base de données utilisé par OwnCloud (mysql).
+
+DB_NAME
+
+Nom de la base de données créée pour OwnCloud.
+
+DB_USER
+
+Utilisateur dédié à OwnCloud pour accéder à la base.
+
+DB_PASSWORD
+
+Mot de passe associé à DB_USER.
+
+Variables OwnCloud
+OWNCLOUD_ADMIN_USERNAME
+
+Nom d’utilisateur administrateur principal de la plateforme.
+
+OWNCLOUD_ADMIN_PASSWORD
+
+Mot de passe de l’administrateur OwnCloud.
+
+OWNCLOUD_DB_HOST
+
+Nom du service Docker correspondant à la base de données (owncloud-db).
+
+OVERWRITEPROTOCOL
+
+Force l’utilisation du protocole HTTPS.
+
+OVERWRITEHOST
+
+Domaine officiel utilisé par OwnCloud.
+
+Variables Collabora
+COLLABORA_DOMAIN
+
+Domaine autorisé à communiquer avec Collabora.
+
+COLLABORA_USERNAME
+
+Utilisateur d’authentification pour Collabora.
+
+COLLABORA_PASSWORD
+
+Mot de passe associé à Collabora.
+
+8. Configuration NGINX (Reverse Proxy)
+
+Fichier :
+
+/etc/nginx/sites-available/23U2423.systeme-res30.app
+
+Contenu :
+
+server {
+    listen 80;
+    server_name 23U2423.systeme-res30.app;
+
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+
+server {
+    listen 443 ssl;
+    server_name 23U2423.systeme-res30.app;
+
+
+    ssl_certificate /etc/letsencrypt/live/23U2423.systeme-res30.app/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/23U2423.systeme-res30.app/privkey.pem;
+
+
+    location / {
+        proxy_pass http://localhost:5581;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+
+    location /loleaflet {
+        proxy_pass http://localhost:9981;
+    }
+}
+9. Rôle de Let’s Encrypt et Certbot
+Let’s Encrypt
+
+Autorité de certification gratuite permettant de générer des certificats SSL/TLS reconnus mondialement.
+
+Certbot
+
+Client permettant :
+
+Génération automatique du certificat
+
+Installation automatique dans NGINX
+
+Renouvellement automatique avant expiration
+
+10. Génération du certificat TLS
+1) Installation
+sudo apt update
+sudo apt install certbot python3-certbot-nginx
+2) Génération du certificat
+sudo certbot --nginx -d 23U2423.systeme-res30.app
+3) Test du renouvellement
+sudo certbot renew --dry-run
+11. Emplacement des certificats
+
+Les certificats sont stockés dans :
+
+/etc/letsencrypt/live/23U2423.systeme-res30.app/
+
+Fichiers importants :
+
+fullchain.pem
+
+privkey.pem
+
+12. Instructions de démarrage
+1) Se connecter au serveur
+ssh user@ip_du_serveur
+2) Aller dans le dossier du projet
+cd owncloud_23U2423
+3) Lancer les conteneurs
 docker compose up -d
-
-# 4. Vérifier l'état des services
+4) Vérifier les services
 docker compose ps
+13. Commandes utiles
 
-# 5. Installer OwnCloud (première fois seulement)
-# Accéder à https://23U2423.systeme-res30.app et suivre l'assistant d'installation
-# ou utiliser la CLI :
-docker exec owncloud_app_23U2423 php occ maintenance:install \
-  --database=mysql \
-  --database-name=owncloud \
-  --database-user=owncloud \
-  --database-pass=DbPass123 \
-  --database-host=owncloud-db \
-  --admin-user=admin \
-  --admin-pass=admin
-```
+Voir les logs :
 
-## 5. Identifiants de connexion
-
-### Interface Web OwnCloud
-- **URL** : https://23U2423.systeme-res30.app
-- **Utilisateur** : admin
-- **Mot de passe** : admin
-
-## 6. Commandes utiles
-```bash
-# Voir les logs en temps réel
 docker compose logs -f
 
-# Redémarrer les services
+Redémarrer :
+
 docker compose restart
 
-# Arrêter les services
+Arrêter :
+
 docker compose stop
 
-# Supprimer complètement l'installation
+Supprimer complètement :
+
 docker compose down -v
-sudo rm -rf owncloud_collabora.app/
+14. Sécurité mise en place
 
-# Vérifier les ports utilisés
-docker compose ps
-```
+Accès HTTPS obligatoire
 
-## 7. Architecture technique
+Certificat TLS valide
 
-### Services déployés
-- **MariaDB 10.6** : Base de données (port interne)
-- **OwnCloud** : Plateforme de stockage (port 5581 → HTTPS via Nginx)
-- **Collabora Online** : Suite bureautique (port 9981 → HTTPS via Nginx)
+Variables sensibles externalisées dans .env
 
-### Volumes persistants
-- `./owncloud_collabora.app/mysql` : Données MariaDB
-- `./owncloud_collabora.app/owncloud_data` : Fichiers utilisateurs
-- `./owncloud_collabora.app/config` : Configuration OwnCloud
-- `./owncloud_collabora.app/apps` : Applications OwnCloud
+Réseau Docker isolé
 
-### Réseau
-- Réseau Docker bridge : `owncloud_network`
-- Reverse proxy Nginx avec certificat SSL wildcard
+Données persistantes
 
-## 8. Dépannage
+15. Conclusion
 
-### Les conteneurs ne démarrent pas
-```bash
-docker compose logs
-```
+Ce projet met en place une infrastructure complète de collaboration d’entreprise :
 
-### Problème de permissions
-```bash
-sudo chown -R www-data:www-data owncloud_collabora.app/owncloud_data
-sudo chown -R 999:999 owncloud_collabora.app/mysql
-```
+Sécurisée (HTTPS + TLS)
 
-### Réinitialiser l'installation
-```bash
-docker compose down -v
-sudo rm -rf owncloud_collabora.app/
-mkdir -p owncloud_collabora.app/{mysql,owncloud_data,config,apps}
-docker compose up -d
-```
+Persistante (Volumes bind)
 
----
+Structurée (Réseau dédié)
 
-**Date de déploiement** : 28 Janvier 2026  
-**Version** : OwnCloud latest + Collabora latest  
-**Étudiant** : TAMWO MOTCHEYO STEVE SOREL (23U2423)
+Professionnelle (Reverse proxy + Certbot)
+
+L’application est accessible publiquement via HTTPS conformément aux exigences du TP INF3611.
