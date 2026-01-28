@@ -59,11 +59,6 @@ docker exec owncloud_app_23U2423 php occ maintenance:install \
 - **Utilisateur** : admin
 - **Mot de passe** : admin
 
-### Interface Admin Collabora
-- **URL** : https://23U2423.systeme-res30.app/cool/
-- **Utilisateur** : cool
-- **Mot de passe** : CoolPass123
-
 ## 6. Commandes utiles
 ```bash
 # Voir les logs en temps réel
